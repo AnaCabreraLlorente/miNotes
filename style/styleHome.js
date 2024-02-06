@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
+import { blue100 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 const stylesHome = StyleSheet.create({
     buttonContainer: {
@@ -7,20 +8,36 @@ const stylesHome = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 10,
         width: 200, 
-        marginLeft: 60 
+        marginLeft: 60,
+        alignContent: 'center'
+    },
+
+    addButton: {
+      position: 'absolute',
+      right: 10,
+      bottom: 30
     },
 
     container: {
         flex: 1,
+        
       },
+
       noteItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+        borderBottomColor: '#D7E8EC',
+        // backgroundColor: '#D7E8EC'
+        
       },
+
+      noteText: {
+        color: 'black',
+      },
+
       noteTouchable: {
         flex: 1,
       },
@@ -36,15 +53,6 @@ const stylesHome = StyleSheet.create({
         borderRadius: 10,
         elevation: 5,
         height: '80%'
-      },
-      fab: {
-        position: 'absolute',
-        margin: 16,
-        right: 0,
-        bottom: 0,
-        borderRadius: 50,
-        backgroundColor: '#39A7C6',
-        alignItems: 'center'
       },
 
       title:{

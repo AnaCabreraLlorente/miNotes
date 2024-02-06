@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 
-const styles = StyleSheet.create({
+const stylesRegister = StyleSheet.create({
     formContainer: {
         width: 300,
         height: 300,
-        marginTop: 20,
+        marginTop: 200,
         marginLeft: 30,
         fontFamily: 'Arial',
         backgroundColor: '#D7E8EC',
-        borderRadius: 10,
+        borderRadius: 10
     },
     input: {
         marginLeft: 30,
@@ -54,13 +54,11 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     portada:{
-        marginTop: 50,
-        width: 210,
-        height: 210,
-        borderRadius: 100,
-        alignSelf: 'center',
-        marginBottom: 30,
+        width: 360,
+        height: 280,
+        borderRadius: 10,
+   
     }
 });
 
-export default styles;
+export default stylesRegister;

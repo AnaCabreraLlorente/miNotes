@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Modal, TextInput, Keyboard } from 'react-native';
-import { FAB, Button} from 'react-native-paper';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Modal, TextInput, Keyboard, Alert, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import stylesHome from '../style/styleHome';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/AntDesign';
+import { Button } from 'react-native-paper';
+import { v4 as uuidv4 } from 'uuid';
 
-const HomeScreen = ({ navigation }) => {
-  const iconName = 'plus';
+const HomeScreen = ({ route, navigation }) => {
+  const { userId } = route.params; // Assume you're passing the userId from the login screen
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [notes, setNotes] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -30,35 +31,35 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     const loadNotes = async () => {
       try {
-        const storedNotes = await AsyncStorage.getItem('notes');
+        const storedNotes = await AsyncStorage.getItem(`notes_${userId}`);
         if (storedNotes) {
           const parsedNotes = JSON.parse(storedNotes);
           setNotes(parsedNotes);
         }
       } catch (error) {
-        console.error('Error al cargar notas desde AsyncStorage:', error);
+        console.error('Error loading notes from AsyncStorage:', error);
       }
     };
 
     loadNotes();
-  }, []);
+  }, [userId]);
 
   const handleAddOrEditNote = async () => {
     if (!editingNote.title.trim()) {
-      return; // Evitar notas vacías
+      return; // Avoid empty notes
     }
 
     const updatedNotes = editingNote.id
       ? notes.map((note) => (note.id === editingNote.id ? editingNote : note))
-      : [...notes, { ...editingNote, id: String(Date.now()) }];
+      : [...notes, { ...editingNote, id: uuidv4() }];
 
     try {
-      await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
+      await AsyncStorage.setItem(`notes_${userId}`, JSON.stringify(updatedNotes));
       setNotes(updatedNotes);
       setEditingNote({ title: '', text: '' });
       setModalVisible(false);
     } catch (error) {
-      console.error('Error al guardar nota en AsyncStorage:', error);
+      console.error('Error saving note to AsyncStorage:', error);
     }
   };
 
@@ -66,12 +67,13 @@ const HomeScreen = ({ navigation }) => {
     const updatedNotes = notes.filter((note) => note.id !== noteId);
 
     try {
-      await AsyncStorage.setItem('notes', JSON.stringify(updatedNotes));
+      await AsyncStorage.setItem(`notes_${userId}`, JSON.stringify(updatedNotes));
       setNotes(updatedNotes);
       setEditingNote({ title: '', text: '' });
       setModalVisible(false);
+      ToastAndroid.showWithGravity('Nota eliminada', ToastAndroid.SHORT, ToastAndroid.CENTER);
     } catch (error) {
-      console.error('Error al eliminar nota en AsyncStorage:', error);
+      console.error('Error deleting note from AsyncStorage:', error);
     }
   };
 
@@ -80,39 +82,42 @@ const HomeScreen = ({ navigation }) => {
     setModalVisible(true);
   };
 
+  const clearStoredData = async () => {
+    try {
+      // Clear all data stored in AsyncStorage for the current user
+      await AsyncStorage.removeItem(`notes_${userId}`);
+      console.log('All data in AsyncStorage for the user has been cleared.');
+    } catch (error) {
+      console.error('Error clearing all data in AsyncStorage:', error);
+    }
+  };
+
   const renderItem = ({ item }) => (
     <View style={stylesHome.noteItem}>
       <TouchableOpacity
         onPress={() => handleNotePress(item)}
         style={stylesHome.noteTouchable}
       >
-        <Text>{item.title}</Text>
+        <Text style={stylesHome.noteText}>{item.title}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => handleDeleteNote(item.id)}>
-        <Icon name="plus" size={30} color="black" />
+        <Icon name="delete" size={20} color="#39A7C6" />
       </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={stylesHome.container}>
-      <FlatList
+      <FlatList style={stylesHome.flatList}
         data={notes}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />
-      <FAB
-        style={stylesHome.fab}
-        icon={({ size, color }) => (
-            <Icon name={iconName} size={size} color={color} />
-          )}
-        onPress={() => {
-          setEditingNote({ title: '', text: '' });
-          setModalVisible(true);
-        }}
-      />
+      <TouchableOpacity style={stylesHome.addButton} onPress={() => {setEditingNote({title: '', text: ''}); setModalVisible(true)} }>
+        <Icon name="pluscircle" size={50} color="#39A7C6"/>
+      </TouchableOpacity>
 
-      {/* Modal para añadir nueva nota o editar la nota seleccionada */}
+      {/* Modal to add a new note or edit the selected note */}
       <Modal
         animationType="slide"
         transparent={true}

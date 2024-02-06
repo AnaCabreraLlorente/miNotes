@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Alert } from 'react-native';
+import { View, Text, TextInput, Alert, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import styles from '../style/styleLogin';
 import { Button } from 'react-native-paper';
 import { Provider as PaperProvider, Title } from 'react-native-paper';
+import stylesRegister from '../style/styleRegister';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 
 const RegisterScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
@@ -16,18 +18,27 @@ const RegisterScreen = ({ navigation }) => {
       if (username && password && confirmPassword) {
         // Verificar que las contraseñas coincidan
         if (password === confirmPassword) {
-          // Almacenar las credenciales en AsyncStorage
-          await AsyncStorage.setItem('username', username);
-          await AsyncStorage.setItem('password', password);
+          // Verificar si ya existe un usuario con el mismo nombre
+          const existingUsers = await AsyncStorage.getItem('users');
+          let users = existingUsers ? JSON.parse(existingUsers) : [];
+          const userId = uuidv4();
+          const existingUser = users.find((user) => user.username === username);
 
-          // Redirigir al usuario a la pantalla de inicio de sesión
-          Alert.alert('Éxito', 'Registro exitoso');
-          navigation.navigate('Login');
+          if (existingUser === username) {
+            Alert.alert('Error', 'El nombre de usuario ya está registrado');
+          } else {
+            // Almacenar las credenciales en AsyncStorage
+            await AsyncStorage.setItem('users', JSON.stringify([...users, { id: userId, username, password }]));
+
+            // Redirigir al usuario a la pantalla de inicio de sesión
+            ToastAndroid.showWithGravity('Registro exitoso', ToastAndroid.SHORT, ToastAndroid.CENTER);
+            navigation.navigate('Login');
+          }
         } else {
-          Alert.alert('Error', 'Las contraseñas no coinciden');
+          ToastAndroid.showWithGravity('Las contraseñas no coinciden', ToastAndroid.SHORT, ToastAndroid.CENTER);
         }
       } else {
-        Alert.alert('Error', 'Por favor, complete todos los campos');
+        ToastAndroid.showWithGravity('Por favor, complete todos los campos', ToastAndroid.SHORT, ToastAndroid.CENTER);
       }
     } catch (error) {
       console.error('Error al registrar usuario:', error);
@@ -35,23 +46,23 @@ const RegisterScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.formContainer}>
-    <Title style={styles.title}>Crear cuenta / Registro</Title>
+    <View style={stylesRegister.formContainer}>
+    <Title style={stylesRegister.title}>Crear cuenta / Registro</Title>
       <TextInput
-        style={styles.input}
+        style={stylesRegister.input}
         placeholder="Nombre de usuario"
         value={username}
         onChangeText={(text) => setUsername(text)}
       />
       <TextInput
-      style={styles.input}
+      style={stylesRegister.input}
         placeholder="Contraseña"
         secureTextEntry
         value={password}
         onChangeText={(text) => setPassword(text)}
       />
       <TextInput
-        style={styles.input}
+        style={stylesRegister.input}
         placeholder="Repetir contraseña"
         secureTextEntry
         value={confirmPassword}
@@ -59,7 +70,7 @@ const RegisterScreen = ({ navigation }) => {
       />
       <Button 
         mode="contained"
-        onPress={handleRegister} style={styles.buttonContainer}>
+        onPress={handleRegister} style={stylesRegister.buttonContainer}>
           Registrarse
       </Button>
     </View>
